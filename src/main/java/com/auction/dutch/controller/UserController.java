@@ -1,0 +1,61 @@
+package com.auction.dutch.controller;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import com.auction.dutch.model.dto.request.UpdateProfileRequest;
+import com.auction.dutch.model.dto.response.AdminUserResponse;
+import com.auction.dutch.model.dto.response.ApiResponse;
+import com.auction.dutch.model.dto.response.MyProfileResponse;
+import com.auction.dutch.model.dto.response.PublicUserProfileResponse;
+import com.auction.dutch.service.UserService;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
+
+@Log4j2
+@Controller
+@RequestMapping("/api/users")
+@RequiredArgsConstructor
+public class UserController {
+
+  private final UserService userService;
+
+  @GetMapping("/me")
+  public ResponseEntity<ApiResponse<MyProfileResponse>> getProfile(@AuthenticationPrincipal Jwt jwt) {
+    return userService.getMyProfile(Long.valueOf(jwt.getSubject()));
+  }
+
+  @GetMapping("/{id}")
+  public ResponseEntity<ApiResponse<PublicUserProfileResponse>> getPublicProfile(@PathVariable Long id) {
+    return userService.getPublicProfile(id);
+  }
+
+  @PreAuthorize("hasRole('Admin')")
+  @GetMapping("/admin/{id}")
+  public ResponseEntity<ApiResponse<AdminUserResponse>> getProfile(@PathVariable Long id) {
+    return userService.getUserDetail(id);
+  }
+
+  @PatchMapping("/me")
+  public ResponseEntity<ApiResponse<MyProfileResponse>> updateUserProfile(@AuthenticationPrincipal Jwt jwt,
+      @RequestBody UpdateProfileRequest request) {
+    return userService.updateProfileRequest(Long.valueOf(jwt.getSubject()), request);
+  }
+
+  @PreAuthorize("hasRole('Admin')")
+  @DeleteMapping("/admin/{id}")
+  public ResponseEntity<ApiResponse> solfDeleteUser(@AuthenticationPrincipal Jwt jwt, @PathVariable Long id) {
+    return userService.solfUserDelete(Long.valueOf(jwt.getSubject()), id);
+  }
+
+}
