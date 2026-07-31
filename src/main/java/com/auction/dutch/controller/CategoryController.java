@@ -14,7 +14,6 @@ import com.auction.dutch.model.dto.response.CategoryDetailResponse;
 import com.auction.dutch.model.dto.response.CategorySummaryResponse;
 import com.auction.dutch.model.dto.response.CategoryTreeResponse;
 import com.auction.dutch.service.CategoryService;
-
 import lombok.RequiredArgsConstructor;
 
 @RestController
