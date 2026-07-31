@@ -32,30 +32,40 @@ public class UserController {
 
   @GetMapping("/me")
   public ResponseEntity<ApiResponse<MyProfileResponse>> getProfile(@AuthenticationPrincipal Jwt jwt) {
-    return userService.getMyProfile(Long.valueOf(jwt.getSubject()));
+
+    MyProfileResponse myProfileResponse = userService.getMyProfile(Long.valueOf(jwt.getSubject()));
+
+    return ResponseEntity.ok(new ApiResponse<MyProfileResponse>(200, "Successfull", myProfileResponse));
   }
 
   @GetMapping("/{id}")
   public ResponseEntity<ApiResponse<PublicUserProfileResponse>> getPublicProfile(@PathVariable Long id) {
-    return userService.getPublicProfile(id);
+    PublicUserProfileResponse userProfile = userService.getPublicProfile(id);
+
+    return ResponseEntity.ok(new ApiResponse<PublicUserProfileResponse>(200, "Successfull", userProfile));
   }
 
   @PreAuthorize("hasRole('Admin')")
   @GetMapping("/admin/{id}")
   public ResponseEntity<ApiResponse<AdminUserResponse>> getProfile(@PathVariable Long id) {
-    return userService.getUserDetail(id);
+    AdminUserResponse userProfile = userService.getUserDetail(id);
+
+    return ResponseEntity.ok(new ApiResponse<AdminUserResponse>(200, "Successfull", userProfile));
   }
 
   @PatchMapping("/me")
   public ResponseEntity<ApiResponse<MyProfileResponse>> updateUserProfile(@AuthenticationPrincipal Jwt jwt,
       @RequestBody UpdateProfileRequest request) {
-    return userService.updateProfileRequest(Long.valueOf(jwt.getSubject()), request);
+    MyProfileResponse myProfileResponse = userService.updateProfileRequest(Long.valueOf(jwt.getSubject()), request);
+    return ResponseEntity.ok(new ApiResponse<MyProfileResponse>(200, "Successfull", myProfileResponse));
   }
 
   @PreAuthorize("hasRole('Admin')")
   @DeleteMapping("/admin/{id}")
   public ResponseEntity<ApiResponse> solfDeleteUser(@AuthenticationPrincipal Jwt jwt, @PathVariable Long id) {
-    return userService.solfUserDelete(Long.valueOf(jwt.getSubject()), id);
+    userService.solfUserDelete(Long.valueOf(jwt.getSubject()), id);
+
+    return ResponseEntity.ok(new ApiResponse<>(200, "Successfull", null));
   }
 
 }

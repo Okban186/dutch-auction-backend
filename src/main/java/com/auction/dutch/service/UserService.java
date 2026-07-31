@@ -49,7 +49,7 @@ public class UserService {
     return user;
   }
 
-  public ResponseEntity<ApiResponse<RegisterResponse>> createUser(SignUpRequest signUpRequest) {
+  public RegisterResponse createUser(SignUpRequest signUpRequest) {
     if (userRepository.existsByUsername(signUpRequest.getUsername()))
       throw new AppException(ErrorCode.USERNAME_ALREADY_EXISTS);
     String passwordHash = passwordEncoder.encode(signUpRequest.getPassword());
@@ -69,31 +69,31 @@ public class UserService {
       throw new RuntimeException("Can't generate access token", e.getCause());
     }
 
-    return ResponseEntity.status(200).body(new ApiResponse<RegisterResponse>(200, "", registerResponse));
+    return registerResponse;
   }
 
-  public ResponseEntity<ApiResponse<PublicUserProfileResponse>> getPublicProfile(Long id) {
+  public PublicUserProfileResponse getPublicProfile(Long id) {
     User user = getActiveUser(id);
     PublicUserProfileResponse userProfile = userMapper.toPublicProfile(user);
-    return ResponseEntity.ok(new ApiResponse<PublicUserProfileResponse>(200, "Successfull", userProfile));
+    return userProfile;
   }
 
-  public ResponseEntity<ApiResponse<MyProfileResponse>> getMyProfile(Long id) {
+  public MyProfileResponse getMyProfile(Long id) {
     User user = getActiveUser(id);
     MyProfileResponse userProfile = userMapper.toMyProfile(user);
-    return ResponseEntity.ok(new ApiResponse<MyProfileResponse>(200, "Successfull", userProfile));
+    return userProfile;
   }
 
-  public ResponseEntity<ApiResponse<AdminUserResponse>> getUserDetail(Long id) {
+  public AdminUserResponse getUserDetail(Long id) {
     User user = getActiveUser(id);
     AdminUserResponse userDetail = userMapper.toAdminUser(user);
-    return ResponseEntity.ok(new ApiResponse<AdminUserResponse>(200, "", userDetail));
+    return userDetail;
   }
 
   @Transactional
-  public ResponseEntity<ApiResponse<MyProfileResponse>> updateProfileRequest(Long id, UpdateProfileRequest request) {
+  public MyProfileResponse updateProfileRequest(Long id, UpdateProfileRequest request) {
     if (request.getDisplayName() == null && request.getPhoneNumber() == null && request.getUserAddresses() == null)
-      return ResponseEntity.ok(new ApiResponse<MyProfileResponse>(200, "No changed detected", null));
+      return null;
     User user = getActiveUser(id);
     String displayName = user.getDisplayName();
     String phoneNumber = user.getPhoneNumber();
@@ -101,22 +101,21 @@ public class UserService {
     userMapper.updateUserProfile(request, user);
     if (Objects.equals(displayName, user.getDisplayName()) && Objects.equals(phoneNumber, user.getPhoneNumber())
         && Objects.equals(userAddress, user.getUserAddresses()))
-      return ResponseEntity.ok(new ApiResponse<MyProfileResponse>(200, "No changed detected", null));
+      return null;
 
     MyProfileResponse userProfile = userMapper.toMyProfile(user);
 
-    return ResponseEntity.ok(new ApiResponse<MyProfileResponse>(200, "Successfull", userProfile));
+    return userProfile;
   }
 
   @Transactional
-  public ResponseEntity<ApiResponse> solfUserDelete(Long adminId, Long id) {
+  public Boolean solfUserDelete(Long adminId, Long id) {
     if (adminId == id)
-      return ResponseEntity.status(409)
-          .body(new ApiResponse(409, ErrorCode.CANNOT_DELETE_LAST_ADMIN.getMessage(), ""));
+      throw new AppException(ErrorCode.CANNOT_DELETE_LAST_ADMIN);
     User user = getActiveUser(id);
     user.setStatus(UserStatus.DELETED);
 
-    return ResponseEntity.ok(new ApiResponse(200, "Successfull", null));
+    return true;
 
   }
 }

@@ -96,7 +96,7 @@ public class AuthService {
     }
   }
 
-  public ResponseEntity<ApiResponse<LoginResponse>> userLogin(LoginRequest loginRequest) {
+  public LoginResponse userLogin(LoginRequest loginRequest) {
     User user = userRepository.findByUsername(loginRequest.getUsername())
         .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
     if (user.getStatus() == UserStatus.DELETED) {
@@ -115,7 +115,7 @@ public class AuthService {
         .userProfile(userProfile)
         .build();
 
-    return ResponseEntity.ok(new ApiResponse<LoginResponse>(200, "Login successful", loginResponse));
+    return loginResponse;
   }
 
 }
