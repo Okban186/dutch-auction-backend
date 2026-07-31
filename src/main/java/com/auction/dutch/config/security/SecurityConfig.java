@@ -21,42 +21,45 @@ import lombok.RequiredArgsConstructor;
 @EnableMethodSecurity
 public class SecurityConfig {
 
-    private final JwtDecoder jwtDecoder;
+        private final JwtDecoder jwtDecoder;
 
-    private final JwtAuthenticationConverter jwtAuthenticationConverter;
+        private final JwtAuthenticationConverter jwtAuthenticationConverter;
 
-    @Bean
-    public SecurityFilterChain securityFilterChain(
-            HttpSecurity http) throws Exception {
+        @Bean
+        public SecurityFilterChain securityFilterChain(
+                        HttpSecurity http) throws Exception {
 
-        http
-                .csrf(AbstractHttpConfigurer::disable)
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth
+                http
+                                .csrf(AbstractHttpConfigurer::disable)
+                                .sessionManagement(session -> session
+                                                .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                                .authorizeHttpRequests(auth -> auth
 
-                        .requestMatchers("/api/*/admin", "/api/*/admin/**").denyAll()
+                                                .requestMatchers("/api/*/admin", "/api/*/admin/**").denyAll()
 
-                        .requestMatchers(
-                                "/swagger-ui/**",
-                                "/v3/api-docs/**")
-                        .permitAll()
+                                                .requestMatchers(
+                                                                "/swagger-ui/**",
+                                                                "/v3/api-docs/**")
+                                                .permitAll()
 
-                        .requestMatchers("/api/users/me").authenticated()
+                                                .requestMatchers("/api/users/me").authenticated()
 
-                        .requestMatchers("/api/users/**").permitAll()
+                                                .requestMatchers("/api/users/**").permitAll()
 
-                        .anyRequest().permitAll())
+                                                .anyRequest().permitAll())
 
-                .oauth2ResourceServer(
-                        oauth -> oauth.jwt(
-                                jwt -> jwt.decoder(jwtDecoder).jwtAuthenticationConverter(jwtAuthenticationConverter)));
+                                .oauth2ResourceServer(
+                                                oauth -> oauth.jwt(
+                                                                jwt -> jwt.decoder(jwtDecoder)
+                                                                                .jwtAuthenticationConverter(
+                                                                                                jwtAuthenticationConverter)));
 
-        return http.build();
-    }
+                return http.build();
+        }
 
-    @Bean
-    public PasswordEncoder passwordEncoder() {
+        @Bean
+        public PasswordEncoder passwordEncoder() {
 
-        return new BCryptPasswordEncoder(12);
-    }
+                return new BCryptPasswordEncoder(12);
+        }
 }
