@@ -18,7 +18,6 @@ import com.auction.dutch.model.dto.response.ApiResponse;
 import com.auction.dutch.model.dto.response.MyProfileResponse;
 import com.auction.dutch.model.dto.response.PublicUserProfileResponse;
 import com.auction.dutch.service.UserService;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
