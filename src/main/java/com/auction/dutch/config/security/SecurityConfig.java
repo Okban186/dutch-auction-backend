@@ -21,44 +21,42 @@ import lombok.RequiredArgsConstructor;
 @EnableMethodSecurity
 public class SecurityConfig {
 
-  private final JwtDecoder jwtDecoder;
+    private final JwtDecoder jwtDecoder;
 
-  private final JwtAuthenticationConverter jwtAuthenticationConverter;
+    private final JwtAuthenticationConverter jwtAuthenticationConverter;
 
-  @Bean
-  public SecurityFilterChain securityFilterChain(
-      HttpSecurity http) throws Exception {
+    @Bean
+    public SecurityFilterChain securityFilterChain(
+            HttpSecurity http) throws Exception {
 
-    http
-        .csrf(AbstractHttpConfigurer::disable)
-        .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-        .authorizeHttpRequests(auth -> auth
-            .requestMatchers(
-                "/swagger-ui/**",
-                "/v3/api-docs/**")
-            .permitAll()
+        http
+                .csrf(AbstractHttpConfigurer::disable)
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth
 
-            .requestMatchers(
-                "/api/users/me")
-            .authenticated()
+                        .requestMatchers("/api/*/admin", "/api/*/admin/**").denyAll()
 
-            .requestMatchers(
-                "/api/users/admin/**")
-            .authenticated()
+                        .requestMatchers(
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**")
+                        .permitAll()
 
-            .requestMatchers(
-                "/api/users/**")
-            .permitAll().anyRequest().permitAll() // Tất cả API khác BẮT BUỘC có JWT Token
-        )
-        .oauth2ResourceServer(
-            oauth -> oauth.jwt(jwt -> jwt.decoder(jwtDecoder).jwtAuthenticationConverter(jwtAuthenticationConverter)));
+                        .requestMatchers("/api/users/me").authenticated()
 
-    return http.build();
-  }
+                        .requestMatchers("/api/users/**").permitAll()
 
-  @Bean
-  public PasswordEncoder passwordEncoder() {
+                        .anyRequest().permitAll())
 
-    return new BCryptPasswordEncoder(12);
-  }
+                .oauth2ResourceServer(
+                        oauth -> oauth.jwt(
+                                jwt -> jwt.decoder(jwtDecoder).jwtAuthenticationConverter(jwtAuthenticationConverter)));
+
+        return http.build();
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+
+        return new BCryptPasswordEncoder(12);
+    }
 }
