@@ -1,24 +1,16 @@
 package com.auction.dutch.model.dto.response;
 
-import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
-@Setter
-@Getter
-@NoArgsConstructor
-@AllArgsConstructor
 @Builder
-public class CategoryAttributeItemResponse {
-    private Long id;
+public record CategoryAttributeItemResponse(
+        Long id,
 
-    private String code;
+        String code,
 
-    private String name;
+        String name,
 
-    private boolean required;
+        boolean required,
 
-    private Integer displayOrder;
+        Integer displayOrder) {
 }

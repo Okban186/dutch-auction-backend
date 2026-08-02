@@ -3,34 +3,27 @@ package com.auction.dutch.model.dto.response;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
-@Setter
-@Getter
 @Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class MyProfileResponse {
-  private Long id;
 
-  private String username;
+public record MyProfileResponse(
+    Long id,
 
-  private String displayName;
+    String username,
 
-  private String userAddresses;
+    String displayName,
 
-  private String email;
+    String userAddresses,
 
-  private String phoneNumber;
+    String email,
 
-  private BigDecimal walletBalance;
+    String phoneNumber,
 
-  private LocalDateTime createdAt;
+    BigDecimal walletBalance,
 
-  private LocalDateTime updatedAt;
+    LocalDateTime createdAt,
+
+    LocalDateTime updatedAt) {
 
 }

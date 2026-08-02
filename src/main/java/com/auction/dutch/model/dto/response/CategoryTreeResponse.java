@@ -2,24 +2,16 @@ package com.auction.dutch.model.dto.response;
 
 import java.util.List;
 
-import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
-@Setter
-@Getter
-@NoArgsConstructor
-@AllArgsConstructor
 @Builder
-public class CategoryTreeResponse {
+public record CategoryTreeResponse(
 
-    private Long id;
+        Long id,
 
-    private String code;
+        String code,
 
-    private String name;
+        String name,
 
-    private List<CategoryTreeResponse> children;
+        List<CategoryTreeResponse> children) {
 }

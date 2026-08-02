@@ -97,13 +97,13 @@ public class AuthService {
   }
 
   public LoginResponse userLogin(LoginRequest loginRequest) {
-    User user = userRepository.findByUsername(loginRequest.getUsername())
+    User user = userRepository.findByUsername(loginRequest.username())
         .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
     if (user.getStatus() == UserStatus.DELETED) {
       throw new AppException(ErrorCode.USER_DELETED);
     }
 
-    if (!passwordEncoder.matches(loginRequest.getPassword(), user.getPasswordHash())) {
+    if (!passwordEncoder.matches(loginRequest.password(), user.getPasswordHash())) {
       throw new AppException(ErrorCode.INVALID_CREDENTIALS);
     }
 

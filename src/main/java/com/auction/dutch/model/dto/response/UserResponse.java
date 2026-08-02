@@ -6,38 +6,30 @@ import java.time.LocalDateTime;
 import com.auction.dutch.enums.UserStatus;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
-import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class UserResponse {
+public record UserResponse(
 
-  private Long id;
+    Long id,
 
-  private String username;
+    String username,
 
-  private String displayName;
+    String displayName,
 
-  private String userAddresses;
+    String userAddresses,
 
-  private String email;
+    String email,
 
-  private String phoneNumber;
+    String phoneNumber,
 
-  private BigDecimal walletBalance;
+    BigDecimal walletBalance,
 
-  private UserStatus status;
+    UserStatus status,
 
-  private LocalDateTime createdAt;
+    LocalDateTime createdAt,
 
-  private LocalDateTime updatedAt;
+    LocalDateTime updatedAt) {
 
 }

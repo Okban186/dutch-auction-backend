@@ -4,24 +4,16 @@ import java.util.List;
 
 import com.auction.dutch.model.dto.internal.CategoryBreadcrumbDto;
 
-import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
 @Builder
-public class CategoryDetailResponse {
+public record CategoryDetailResponse(
 
-    private Long id;
+        Long id,
 
-    private String code;
+        String code,
 
-    private String name;
+        String name,
 
-    private List<CategoryBreadcrumbDto> cBreadcrumbDtos;
+        List<CategoryBreadcrumbDto> cBreadcrumbDtos) {
 }

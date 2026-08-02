@@ -1,20 +1,9 @@
 package com.auction.dutch.model.dto.request;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+public record UpdateProfileRequest(
+    String displayName,
 
-@Getter
-@Setter
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class UpdateProfileRequest {
-  private String displayName;
+    String userAddresses,
 
-  private String userAddresses;
-
-  private String phoneNumber;
+    String phoneNumber) {
 }
