@@ -3,7 +3,6 @@ package com.auction.dutch.service;
 import java.util.Collections;
 import java.util.Objects;
 
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -14,7 +13,6 @@ import com.auction.dutch.mapper.UserMapper;
 import com.auction.dutch.model.dto.request.SignUpRequest;
 import com.auction.dutch.model.dto.request.UpdateProfileRequest;
 import com.auction.dutch.model.dto.response.AdminUserResponse;
-import com.auction.dutch.model.dto.response.ApiResponse;
 import com.auction.dutch.model.dto.response.MyProfileResponse;
 import com.auction.dutch.model.dto.response.PublicUserProfileResponse;
 import com.auction.dutch.model.dto.response.RegisterResponse;
@@ -50,26 +48,27 @@ public class UserService {
   }
 
   public RegisterResponse createUser(SignUpRequest signUpRequest) {
-    if (userRepository.existsByUsername(signUpRequest.getUsername()))
+    if (userRepository.existsByUsername(signUpRequest.username()))
       throw new AppException(ErrorCode.USERNAME_ALREADY_EXISTS);
-    String passwordHash = passwordEncoder.encode(signUpRequest.getPassword());
+    String passwordHash = passwordEncoder.encode(signUpRequest.password());
     User user = userMapper.toUser(signUpRequest);
     user.setPasswordHash(passwordHash);
 
     Role userRole = roleRepository.findByCode("USER").orElseThrow(() -> new AppException(ErrorCode.ROLE_NOT_FOUND));
     user.setRoles(Collections.singleton(userRole));
-    log.info(signUpRequest.getDisplayName() + " " + user.getDisplayName());
+    log.info(signUpRequest.displayName() + " " + user.getDisplayName());
     userRepository.save(user);
-    RegisterResponse registerResponse = new RegisterResponse();
-    registerResponse.setUserProfile(userMapper.toUserProfile(user));
+
     try {
       String accessToken = authService.generateToken(user);
-      registerResponse.setAccessToken(accessToken);
+      RegisterResponse registerResponse = RegisterResponse.builder()
+          .userProfile(userMapper.toUserProfile(user))
+          .accessToken(accessToken).build();
+      return registerResponse;
     } catch (Exception e) {
       throw new RuntimeException("Can't generate access token", e.getCause());
     }
 
-    return registerResponse;
   }
 
   public PublicUserProfileResponse getPublicProfile(Long id) {
@@ -92,7 +91,7 @@ public class UserService {
 
   @Transactional
   public MyProfileResponse updateProfileRequest(Long id, UpdateProfileRequest request) {
-    if (request.getDisplayName() == null && request.getPhoneNumber() == null && request.getUserAddresses() == null)
+    if (request.displayName() == null && request.displayName() == null && request.userAddresses() == null)
       return null;
     User user = getActiveUser(id);
     String displayName = user.getDisplayName();

@@ -7,37 +7,26 @@ import java.util.Set;
 import com.auction.dutch.enums.UserStatus;
 import com.auction.dutch.model.entity.Role;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+public record AdminUserResponse(
+    Long id,
 
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-public class AdminUserResponse {
-  private Long id;
+    String username,
 
-  private String username;
+    String displayName,
 
-  private String displayName;
+    String userAddresses,
 
-  private String userAddresses;
+    String email,
 
-  private String email;
+    String phoneNumber,
 
-  private String phoneNumber;
+    BigDecimal walletBalance,
+    UserStatus status,
 
-  private BigDecimal walletBalance;
-  private UserStatus status;
+    LocalDateTime createdAt,
 
-  private LocalDateTime createdAt;
+    LocalDateTime updatedAt,
 
-  private LocalDateTime updatedAt;
-
-  private Set<Role> roles;
+    Set<Role> roles) {
 
 }

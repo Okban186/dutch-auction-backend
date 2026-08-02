@@ -2,32 +2,24 @@ package com.auction.dutch.model.dto.response;
 
 import java.time.LocalDateTime;
 
-import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
-@Setter
-@Getter
-@NoArgsConstructor
-@AllArgsConstructor
 @Builder
-public class PublicUserProfileResponse {
-  private Long id;
+public record PublicUserProfileResponse(
+    Long id,
 
-  private String username;
+    String username,
 
-  private String displayName;
+    String displayName,
 
-  private String userAddresses;
+    String userAddresses,
 
-  private String email;
+    String email,
 
-  private String phoneNumber;
+    String phoneNumber,
 
-  private LocalDateTime createdAt;
+    LocalDateTime createdAt,
 
-  private LocalDateTime updatedAt;
+    LocalDateTime updatedAt) {
 
 }

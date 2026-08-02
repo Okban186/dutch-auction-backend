@@ -1,21 +1,13 @@
 package com.auction.dutch.model.dto.internal;
 
-import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
-@Getter
-@Setter
-@AllArgsConstructor
-@NoArgsConstructor
 @Builder
-public class CategoryBreadcrumbDto {
+public record CategoryBreadcrumbDto(
 
-    private Long id;
+        Long id,
 
-    private String code;
+        String code,
 
-    private String name;
+        String name) {
 }
