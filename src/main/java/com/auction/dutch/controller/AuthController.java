@@ -17,18 +17,18 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("api/auths")
+@RequestMapping("/api")
 @RequiredArgsConstructor
 public class AuthController {
   private final AuthService authService;
   private final UserService userService;
 
-  @PostMapping("/sign-up")
+  @PostMapping("/auths/sign-up")
   public ResponseEntity<ApiResponse<RegisterResponse>> signUp(@Valid @RequestBody SignUpRequest signUpRequest) {
     return ResponseEntity.ok(new ApiResponse<>(200, "Sign up successfull", userService.createUser(signUpRequest)));
   }
 
-  @PostMapping("/login")
+  @PostMapping("/auths/login")
   public ResponseEntity<ApiResponse<LoginResponse>> login(@Valid @RequestBody LoginRequest loginRequest) {
     return ResponseEntity.ok(new ApiResponse<>(200, "Login successfull", authService.userLogin(loginRequest)));
   }

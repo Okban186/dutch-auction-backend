@@ -23,13 +23,13 @@ import lombok.extern.log4j.Log4j2;
 
 @Log4j2
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping("/api")
 @RequiredArgsConstructor
 public class UserController {
 
   private final UserService userService;
 
-  @GetMapping("/me")
+  @GetMapping("/users/me")
   public ResponseEntity<ApiResponse<MyProfileResponse>> getProfile(@AuthenticationPrincipal Jwt jwt) {
 
     MyProfileResponse myProfileResponse = userService.getMyProfile(Long.valueOf(jwt.getSubject()));
@@ -37,7 +37,7 @@ public class UserController {
     return ResponseEntity.ok(new ApiResponse<MyProfileResponse>(200, "Successfull", myProfileResponse));
   }
 
-  @GetMapping("/{id}")
+  @GetMapping("/users/{id}")
   public ResponseEntity<ApiResponse<PublicUserProfileResponse>> getPublicProfile(@PathVariable Long id) {
     PublicUserProfileResponse userProfile = userService.getPublicProfile(id);
 
@@ -45,14 +45,14 @@ public class UserController {
   }
 
   @PreAuthorize("hasRole('Admin')")
-  @GetMapping("/admin/{id}")
+  @GetMapping("/admin/users/{id}")
   public ResponseEntity<ApiResponse<AdminUserResponse>> getProfile(@PathVariable Long id) {
     AdminUserResponse userProfile = userService.getUserDetail(id);
 
     return ResponseEntity.ok(new ApiResponse<AdminUserResponse>(200, "Successfull", userProfile));
   }
 
-  @PatchMapping("/me")
+  @PatchMapping("/users/me")
   public ResponseEntity<ApiResponse<MyProfileResponse>> updateUserProfile(@AuthenticationPrincipal Jwt jwt,
       @RequestBody UpdateProfileRequest request) {
     MyProfileResponse myProfileResponse = userService.updateProfileRequest(Long.valueOf(jwt.getSubject()), request);
@@ -60,7 +60,7 @@ public class UserController {
   }
 
   @PreAuthorize("hasRole('Admin')")
-  @DeleteMapping("/admin/{id}")
+  @DeleteMapping("/admin/users/{id}")
   public ResponseEntity<ApiResponse> solfDeleteUser(@AuthenticationPrincipal Jwt jwt, @PathVariable Long id) {
     userService.solfUserDelete(Long.valueOf(jwt.getSubject()), id);
 
