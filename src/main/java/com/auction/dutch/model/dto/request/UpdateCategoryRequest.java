@@ -1,5 +1,5 @@
 package com.auction.dutch.model.dto.request;
 
-public class UpdateCategoryRequest {
+public record UpdateCategoryRequest(String code, String name, Long parentId) {
 
 }
