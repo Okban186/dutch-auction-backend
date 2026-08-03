@@ -14,6 +14,9 @@ public enum ErrorCode {
 
   // Category
   CATEGORY_NOT_FOUND(404, "Category not found"),
+  CATEGORY_CANNOT_BE_ITS_OWN_PARENT(400, "A category cannot be its own parent."),
+
+  INVALID_CATEGORY_PARENT(400, "The specified parent category is invalid or does not exist."),
 
   // Brand
   BRAND_NOT_FOUND(404, "Brand not found"),
