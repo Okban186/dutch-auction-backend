@@ -18,6 +18,12 @@ public enum ErrorCode {
 
   INVALID_CATEGORY_PARENT(400, "The specified parent category is invalid or does not exist."),
 
+  // Attribute
+  ATTRIBUTE_NOT_FOUND(404, "Attribute not found"),
+
+  // Category attribute
+  CATEGORY_ATTRIBUTE_NOT_FOUND(404, "Category attribute not found"),
+
   // Brand
   BRAND_NOT_FOUND(404, "Brand not found"),
 
