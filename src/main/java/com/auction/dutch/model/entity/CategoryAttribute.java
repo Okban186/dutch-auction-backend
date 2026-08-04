@@ -2,7 +2,8 @@ package com.auction.dutch.model.entity;
 
 import java.time.LocalDateTime;
 
-import jakarta.persistence.CollectionTable;
+import org.hibernate.annotations.CreationTimestamp;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -24,28 +25,35 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "category_attributes", uniqueConstraints = {
-    @UniqueConstraint(columnNames = {
-        "category_id",
-        "attribute_id"
-    })
+        @UniqueConstraint(columnNames = {
+                "category_id",
+                "attribute_id"
+        })
 })
 public class CategoryAttribute {
 
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-  @ManyToOne
-  private Category category;
+    @ManyToOne
+    private Category category;
 
-  @ManyToOne
-  private AttributeDefinition attribute;
+    @ManyToOne
+    private AttributeDefinition attribute;
 
-  @Column(name = "is_required", nullable = false)
-  private Boolean required;
+    @Column(name = "category_id", insertable = false, updatable = false)
+    private Long categoryId;
 
-  @Column(name = "display_order", nullable = false)
-  private int displayOrder;
+    @Column(name = "attribute_id", insertable = false, updatable = false)
+    private Long attributeId;
 
-  private LocalDateTime createdAt;
+    @Column(name = "is_required", nullable = false)
+    private Boolean required;
+
+    @Column(name = "display_order", nullable = false)
+    private int displayOrder;
+
+    @CreationTimestamp
+    private LocalDateTime createdAt;
 }
