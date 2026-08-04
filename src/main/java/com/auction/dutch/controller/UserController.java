@@ -1,7 +1,6 @@
 package com.auction.dutch.controller;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -44,7 +43,6 @@ public class UserController {
     return ResponseEntity.ok(new ApiResponse<PublicUserProfileResponse>(200, "Successfull", userProfile));
   }
 
-  @PreAuthorize("hasRole('Admin')")
   @GetMapping("/admin/users/{id}")
   public ResponseEntity<ApiResponse<AdminUserResponse>> getProfile(@PathVariable Long id) {
     AdminUserResponse userProfile = userService.getUserDetail(id);
@@ -59,7 +57,6 @@ public class UserController {
     return ResponseEntity.ok(new ApiResponse<MyProfileResponse>(200, "Successfull", myProfileResponse));
   }
 
-  @PreAuthorize("hasRole('Admin')")
   @DeleteMapping("/admin/users/{id}")
   public ResponseEntity<ApiResponse> solfDeleteUser(@AuthenticationPrincipal Jwt jwt, @PathVariable Long id) {
     userService.solfUserDelete(Long.valueOf(jwt.getSubject()), id);
