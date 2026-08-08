@@ -20,6 +20,8 @@ public enum ErrorCode {
 
   // Attribute
   ATTRIBUTE_NOT_FOUND(404, "Attribute not found"),
+  ATTRIBUTE_CODE_ALREADY_EXISTS(409, "Attribute code already exists"),
+  ATTRIBUTE_NAME_ALREADY_EXISTS(409, "Attribute name already exists"),
 
   // Category attribute
   CATEGORY_ATTRIBUTE_NOT_FOUND(404, "Category attribute not found"),
