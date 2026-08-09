@@ -1,11 +1,14 @@
 package com.auction.dutch.repository;
 
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import com.auction.dutch.enums.ProductStatus;
 import com.auction.dutch.model.entity.Product;
 
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Long> {
-
+    List<Product> findAllByStatus(ProductStatus status);
 }
