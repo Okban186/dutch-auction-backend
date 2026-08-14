@@ -35,6 +35,21 @@ public enum ErrorCode {
   PRODUCT_OUT_OF_STOCK(400, "Product out of stock"),
   PRODUCT_INACTIVE(400, "Product is inactive"),
 
+  // Product media
+  PRODUCT_MEDIA_NOT_FOUND(404, "Product media not found"),
+  MEDIA_NOT_ASSOCIATED_WITH_PRODUCT(400, "Some media do not belong to the product"),
+  PRODUCT_MEDIA_COUNT_EXCEEDED(413, "Maximum number of media files exceeded"),
+  INVALID_MEDIA_FILE(400, "Invalid media file format"),
+  MEDIA_FILE_TOO_LARGE(413, "Media file size exceeds limit"),
+  INVALID_MEDIA_REQUEST(400, "Media request data is missing or empty"),
+  MEDIA_TYPE_MISMATCH(400, "Media type does not match the detected file type"),
+  REORDER_STATE_CONFLICT(409,
+      "The state transition request was rejected because it conflicts with the current resource state or was processed out of order"),
+  INVALID_MEDIA_ORDER(422,
+      "The requested media sequence is invalid. The number of media items do not match the current product state"),
+  DUPLICATE_MEDIA_OPERATION(409,
+      "The operation was rejected because a media file with identical attributes already exists for this product"),
+
   // Auction
   AUCTION_NOT_FOUND(404, "Auction session not found"),
   AUCTION_NOT_STARTED(400, "Auction has not started yet"),
@@ -59,9 +74,13 @@ public enum ErrorCode {
 
   // System
   INTERNAL_SERVER_ERROR(500, "Internal server error"),
+  STORAGE_ERROR(500, "An error occurred while accessing the storage service"),
 
   // Conflict
-  CANNOT_DELETE_LAST_ADMIN(409, "Cannot delete the last administrator");
+  CANNOT_DELETE_LAST_ADMIN(409, "Cannot delete the last administrator"),
+
+  // To many request
+  TOO_MANY_PENDING_UPLOADS(429, "You have too many pending uploads. Please complete or wait for them to expire.");
 
   private final int status;
   private final String message;
