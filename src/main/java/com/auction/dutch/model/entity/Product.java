@@ -7,8 +7,12 @@ import java.util.List;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import com.auction.dutch.enums.ProductStatus;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -37,7 +41,7 @@ public class Product {
   private Long id;
 
   @Column(nullable = false, unique = true)
-  private String productCode;
+  private String code;
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "category_id", nullable = false)
@@ -54,7 +58,9 @@ public class Product {
 
   private Integer stockQuantity;
 
-  private Boolean isActive;
+  @Enumerated(EnumType.STRING)
+  @Builder.Default
+  private ProductStatus status = ProductStatus.ACTIVE;
 
   @CreationTimestamp
   private LocalDateTime createdAt;
@@ -63,6 +69,6 @@ public class Product {
   private LocalDateTime updatedAt;
 
   @OneToMany(mappedBy = "product")
-  private List<ProductImage> images = new ArrayList<>();
+  private List<ProductMedia> images = new ArrayList<>();
 
 }
