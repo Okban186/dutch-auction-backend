@@ -69,6 +69,6 @@ public class Product {
   private LocalDateTime updatedAt;
 
   @OneToMany(mappedBy = "product")
-  private List<ProductImage> images = new ArrayList<>();
+  private List<ProductMedia> images = new ArrayList<>();
 
 }
