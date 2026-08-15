@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  # ---------------------------------------------------------------------------
+  # Redis Service
+  # ---------------------------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: redis_app
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+    command: redis-server --save 60 1 --loglevel notice --requirepass <yourpasswordhere>
+
+  # ---------------------------------------------------------------------------
+  # MinIO Service
+  # ---------------------------------------------------------------------------
+  minio:
+    image: minio/minio:latest
+    container_name: minio_app
+    restart: always
+    ports:
+      - "9000:9000" # MinIO API Port
+      - "9001:9001" # MinIO Web Console Port
+    environment:
+      MINIO_ROOT_USER: ""                   # User 
+      MINIO_ROOT_PASSWORD: "" # Password 
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+
+# ---------------------------------------------------------------------------
+# Persistent Volumes 
+# ---------------------------------------------------------------------------
+volumes:
+  redis_data:
+  minio_data:
