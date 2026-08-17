@@ -15,6 +15,7 @@ import org.apache.tika.Tika;
 import org.springframework.stereotype.Service;
 
 import com.auction.dutch.cache.UploadTrackingService;
+import com.auction.dutch.config.properties.MediaProperties;
 import com.auction.dutch.enums.MediaType;
 import com.auction.dutch.enums.StorageBucket;
 import com.auction.dutch.exception.AppException;
@@ -54,6 +55,8 @@ public class ProductMediaService {
         private final UploadTrackingService uploadTrackingService;
 
         private final Tika tika = new Tika();
+
+        private final MediaProperties mediaProperties;
 
         @Transactional
         public List<ProductMediaResponse> confirmMedia(
@@ -179,7 +182,7 @@ public class ProductMediaService {
                                                 storageService.generatePresignedViewUrl(
                                                                 StorageBucket.PRODUCT_MEDIA.getBucketName(),
                                                                 media.getStorageKey(),
-                                                                10))
+                                                                mediaProperties.presigned().viewTtl()))
                                 .build();
         }
 

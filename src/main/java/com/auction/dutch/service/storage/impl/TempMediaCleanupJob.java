@@ -7,6 +7,7 @@ import java.util.List;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import com.auction.dutch.config.properties.MediaProperties;
 import com.auction.dutch.enums.StorageBucket;
 import com.auction.dutch.model.dto.internal.StorageObjectInfo;
 import com.auction.dutch.service.storage.StorageService;
@@ -19,14 +20,17 @@ public class TempMediaCleanupJob {
 
         private final StorageService storageService;
 
-        @Scheduled(cron = "0 */20 * * * *", zone = "UTC")
+        private final MediaProperties mediaProperties;
+
+        @Scheduled(cron = "0 */16 * * * *", zone = "UTC")
         public void cleanup() {
 
                 LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
 
-                LocalDateTime target = now.minusMinutes(16);
+                LocalDateTime target = now.minusMinutes(mediaProperties.temp().cleanupInterval().toMinutes());
 
-                int minuteBucket = (target.getMinute() / 10) * 10;
+                long minuteBucket = ((target.getMinute() / mediaProperties.temp().bucketSize().toMinutes())
+                                * mediaProperties.temp().bucketSize().toMinutes());
 
                 String prefix = String.format(
                                 "temp/%04d/%02d/%02d/%02d/%02d/",

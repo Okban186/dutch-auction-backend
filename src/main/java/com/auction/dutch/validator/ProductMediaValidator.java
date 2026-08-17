@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Component;
 
+import com.auction.dutch.config.properties.MediaProperties;
 import com.auction.dutch.enums.MediaType;
 import com.auction.dutch.exception.AppException;
 import com.auction.dutch.exception.ErrorCode;
@@ -19,13 +20,7 @@ public class ProductMediaValidator {
 
     private final ProductMediaRepository productMediaRepository;
 
-    private static final long MAX_IMAGE_SIZE = 10 * 1024 * 1024L; // 10MB
-
-    private static final long MAX_VIDEO_SIZE = 10 * 1024 * 1024L; // 10MB
-
-    private static final int MAX_IMAGES_PER_PRODUCT = 20;
-
-    private static final int MAX_VIDEOS_PER_PRODUCT = 3;
+    private final MediaProperties mediaProperties;
 
     public void validateUploadQuota(
             Long productId,
@@ -114,14 +109,14 @@ public class ProductMediaValidator {
             long fileSize) {
 
         if (mediaType == MediaType.IMAGE
-                && fileSize > MAX_IMAGE_SIZE) {
+                && fileSize > mediaProperties.maxImageSize().toBytes()) {
 
             throw new AppException(
                     ErrorCode.MEDIA_FILE_TOO_LARGE);
         }
 
         if (mediaType == MediaType.VIDEO
-                && fileSize > MAX_VIDEO_SIZE) {
+                && fileSize > mediaProperties.maxVideoSize().toBytes()) {
 
             throw new AppException(
                     ErrorCode.MEDIA_FILE_TOO_LARGE);
@@ -143,13 +138,13 @@ public class ProductMediaValidator {
                         productId,
                         MediaType.VIDEO);
 
-        if (existingImages + incomingImages > MAX_IMAGES_PER_PRODUCT) {
+        if (existingImages + incomingImages > mediaProperties.maxImagePerProduct()) {
 
             throw new AppException(
                     ErrorCode.PRODUCT_MEDIA_COUNT_EXCEEDED);
         }
 
-        if (existingVideos + incomingVideos > MAX_VIDEOS_PER_PRODUCT) {
+        if (existingVideos + incomingVideos > mediaProperties.maxVideoPerProduct()) {
 
             throw new AppException(
                     ErrorCode.PRODUCT_MEDIA_COUNT_EXCEEDED);

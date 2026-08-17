@@ -2,24 +2,21 @@ package com.auction.dutch.service;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.auction.dutch.config.properties.JwtProperties;
 import com.auction.dutch.enums.UserStatus;
 import com.auction.dutch.exception.AppException;
 import com.auction.dutch.exception.ErrorCode;
 import com.auction.dutch.mapper.UserMapper;
 import com.auction.dutch.model.dto.request.LoginRequest;
-import com.auction.dutch.model.dto.response.ApiResponse;
 import com.auction.dutch.model.dto.response.LoginResponse;
 import com.auction.dutch.model.dto.response.UserResponse;
 import com.auction.dutch.model.entity.Role;
@@ -37,16 +34,16 @@ import com.nimbusds.jwt.SignedJWT;
 
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 
 @Service
+@Log4j2
 @RequiredArgsConstructor
 public class AuthService {
 
-  @Value("${jwt.secret}")
-  private String secret;
-
   private JWSSigner signer;
   private JWSVerifier verifier;
+  private final JwtProperties jwtProperties;
 
   private final UserRepository userRepository;
 
@@ -57,7 +54,7 @@ public class AuthService {
   @PostConstruct
   public void init() {
     try {
-      byte[] keyBytes = secret.getBytes(StandardCharsets.UTF_8);
+      byte[] keyBytes = jwtProperties.secret().getBytes(StandardCharsets.UTF_8);
       this.signer = new MACSigner(keyBytes);
       this.verifier = new MACVerifier(keyBytes);
     } catch (JOSEException e) {
@@ -75,7 +72,7 @@ public class AuthService {
 
   public String generateToken(User user) {
     Instant now = Instant.now();
-    Instant expirationTime = now.plus(1, ChronoUnit.HOURS);
+    Instant expirationTime = now.plus(jwtProperties.accessTokenTtl());
     List<String> cleanAuthorities = user.getRoles().stream()
         .map(Role::getName)
         .collect(Collectors.toList());
@@ -88,7 +85,7 @@ public class AuthService {
           .expirationTime(Date.from(expirationTime))
           .jwtID(UUID.randomUUID().toString())
           .claim("roles", cleanAuthorities).build();
-      SignedJWT signedJWT = new SignedJWT(new JWSHeader(JWSAlgorithm.HS256), jwtClaimsSet);
+      SignedJWT signedJWT = new SignedJWT(new JWSHeader(JWSAlgorithm.parse(jwtProperties.algorithm())), jwtClaimsSet);
       signedJWT.sign(this.signer);
       return signedJWT.serialize();
     } catch (JOSEException e) {

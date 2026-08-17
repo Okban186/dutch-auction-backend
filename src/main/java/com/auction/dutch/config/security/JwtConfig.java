@@ -15,28 +15,32 @@ import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 
+import com.auction.dutch.config.properties.JwtProperties;
+
+import lombok.RequiredArgsConstructor;
+
 @Configuration
+@RequiredArgsConstructor
 public class JwtConfig {
 
-  @Value("${jwt.secret}")
-  private String secret;
+  private final JwtProperties jwtProperties;
 
   @Bean
   public JwtDecoder jwtDecoder() {
     SecretKeySpec secretKey = new SecretKeySpec(
-        secret.getBytes(StandardCharsets.UTF_8),
-        "HmacSHA256");
+        jwtProperties.secret().getBytes(StandardCharsets.UTF_8),
+        jwtProperties.macAlgorithm());
 
     NimbusJwtDecoder decoder = NimbusJwtDecoder
         .withSecretKey(secretKey)
-        .macAlgorithm(MacAlgorithm.HS256)
+        .macAlgorithm(MacAlgorithm.from(jwtProperties.algorithm()))
         .build();
     return decoder;
   }
 
   @Bean
   public JwtEncoder jwtEncoder() {
-    SecretKeySpec secretKey = new SecretKeySpec(secret.getBytes(), "HmacSHA256");
+    SecretKeySpec secretKey = new SecretKeySpec(jwtProperties.secret().getBytes(), jwtProperties.macAlgorithm());
     return NimbusJwtEncoder.withSecretKey(secretKey).build();
   }
 
