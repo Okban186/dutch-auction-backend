@@ -64,9 +64,25 @@ public class RedisUploadTrackingService
                 }
         }
 
-        private String buildKey(
-                        Long sellerId) {
+        private String buildKey(Long sellerId) {
 
                 return KEY_PREFIX + sellerId;
+        }
+
+        private static final Duration UPLOAD_SESSION_TTL = Duration.ofMinutes(3);
+
+        public void saveUploadSession(Long sellerId, Long productId, String storageKey) {
+                String key = storageKey;
+
+                String value = sellerId + ":" + productId + ":" + storageKey;
+
+                redisTemplate.opsForValue().set(
+                                key,
+                                value,
+                                UPLOAD_SESSION_TTL);
+        }
+
+        public boolean existsUploadSession(String storageKey) {
+                return Boolean.TRUE.equals(redisTemplate.hasKey(storageKey));
         }
 }
