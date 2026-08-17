@@ -1,9 +1,9 @@
 package com.auction.dutch.service.storage.impl;
 
 import java.io.InputStream;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import org.springframework.stereotype.Service;
 
@@ -35,7 +35,7 @@ public class MinioStorageService
     public String generatePresignedUploadUrl(
             String bucket,
             String objectKey,
-            int expiryMinutes) {
+            Duration expiry) {
 
         try {
 
@@ -46,9 +46,7 @@ public class MinioStorageService
                                     .method(Method.PUT)
                                     .bucket(bucket)
                                     .object(objectKey)
-                                    .expiry(
-                                            expiryMinutes,
-                                            TimeUnit.MINUTES)
+                                    .expiry(Math.toIntExact(expiry.getSeconds()))
                                     .build());
 
         } catch (Exception e) {
@@ -159,7 +157,7 @@ public class MinioStorageService
     public String generatePresignedViewUrl(
             String bucket,
             String objectKey,
-            int expiryMinutes) {
+            Duration expiry) {
         try {
 
             return minioClient.getPresignedObjectUrl(
@@ -167,9 +165,7 @@ public class MinioStorageService
                             .method(Method.GET)
                             .bucket(bucket)
                             .object(objectKey)
-                            .expiry(
-                                    expiryMinutes,
-                                    TimeUnit.MINUTES)
+                            .expiry(Math.toIntExact(expiry.getSeconds()))
                             .build());
 
         } catch (Exception e) {

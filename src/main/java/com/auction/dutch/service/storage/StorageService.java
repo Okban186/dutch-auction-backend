@@ -1,40 +1,41 @@
 package com.auction.dutch.service.storage;
 
 import java.io.InputStream;
+import java.time.Duration;
 import java.util.List;
 
 import com.auction.dutch.model.dto.internal.StorageObjectInfo;
 
 public interface StorageService {
 
-    String generatePresignedUploadUrl(
-            String bucket,
-            String objectKey,
-            int expiryMinutes);
+        String generatePresignedUploadUrl(
+                        String bucket,
+                        String objectKey,
+                        Duration expiry);
 
-    void moveObject(
-            String bucket,
-            String sourceKey,
-            String targetKey);
+        void moveObject(
+                        String bucket,
+                        String sourceKey,
+                        String targetKey);
 
-    void deleteObject(
-            String bucket,
-            String objectKey);
+        void deleteObject(
+                        String bucket,
+                        String objectKey);
 
-    InputStream getObject(
-            String bucket,
-            String objectKey);
+        InputStream getObject(
+                        String bucket,
+                        String objectKey);
 
-    long getObjectSize(
-            String bucket,
-            String objectKey);
+        long getObjectSize(
+                        String bucket,
+                        String objectKey);
 
-    String generatePresignedViewUrl(
-            String bucket,
-            String objectKey,
-            int expiryMinutes);
+        String generatePresignedViewUrl(
+                        String bucket,
+                        String objectKey,
+                        Duration expiry);
 
-    List<StorageObjectInfo> listObjects(
-            String bucket,
-            String prefix);
+        List<StorageObjectInfo> listObjects(
+                        String bucket,
+                        String prefix);
 }

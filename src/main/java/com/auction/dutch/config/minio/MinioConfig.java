@@ -1,28 +1,24 @@
 package com.auction.dutch.config.minio;
 
-
 import io.minio.MinioClient;
-import org.springframework.beans.factory.annotation.Value;
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import com.auction.dutch.config.properties.StorageProperties;
+
 @Configuration
+@RequiredArgsConstructor
 public class MinioConfig {
 
-    @Value("${minio.url}")
-    private String minioUrl;
-
-    @Value("${minio.access-key}")
-    private String accessKey;
-
-    @Value("${minio.secret-key}")
-    private String secretKey;
+    private final StorageProperties storageProperties;
 
     @Bean
     public MinioClient minioClient() {
         return MinioClient.builder()
-                .endpoint(minioUrl)
-                .credentials(accessKey, secretKey)
+                .endpoint(storageProperties.minio().url())
+                .credentials(storageProperties.minio().accessKey(), storageProperties.minio().secretKey())
                 .build();
     }
 }
