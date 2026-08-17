@@ -15,6 +15,7 @@ import org.apache.tika.Tika;
 import org.springframework.stereotype.Service;
 
 import com.auction.dutch.cache.UploadTrackingService;
+import com.auction.dutch.cache.impl.RedisUploadTrackingService;
 import com.auction.dutch.config.properties.MediaProperties;
 import com.auction.dutch.enums.MediaType;
 import com.auction.dutch.enums.StorageBucket;
@@ -44,262 +45,290 @@ import lombok.extern.log4j.Log4j2;
 @RequiredArgsConstructor
 public class ProductMediaService {
 
-        private final ProductRepository productRepository;
+  private final ProductRepository productRepository;
 
-        private final ProductMediaRepository productMediaRepository;
+  private final ProductMediaRepository productMediaRepository;
 
-        private final ProductMediaValidator productMediaValidator;
+  private final ProductMediaValidator productMediaValidator;
 
-        private final StorageService storageService;
+  private final StorageService storageService;
 
-        private final UploadTrackingService uploadTrackingService;
+  private final UploadTrackingService uploadTrackingService;
 
-        private final Tika tika = new Tika();
+  private final Tika tika = new Tika();
 
-        private final MediaProperties mediaProperties;
+  private final MediaProperties mediaProperties;
 
-        @Transactional
-        public List<ProductMediaResponse> confirmMedia(
+  private final RedisUploadTrackingService redisUploadTrackingService;
 
-                        Long sellerId,
+  @Transactional
+  public List<ProductMediaResponse> confirmMedia(
 
-                        Long productId,
+      Long sellerId,
 
-                        ConfirmProductMediaRequest request) {
+      Long productId,
 
-                Product product = productRepository.findById(productId)
-                                .orElseThrow(
-                                                () -> new AppException(
-                                                                ErrorCode.PRODUCT_NOT_FOUND));
+      ConfirmProductMediaRequest request) {
 
-                List<DetectedMediaInfo> detectedMediaList = new ArrayList<>();
+    if (request.items().size() > (mediaProperties.maxImagePerProduct() + mediaProperties.maxVideoPerProduct()))
+      throw new AppException(ErrorCode.INVALID_REQUEST);
+    for (ConfirmMediaItemRequest item : request.items()) {
+      if (redisUploadTrackingService.existsUploadSession(item.storageKey()))
+        throw new AppException(ErrorCode.INVALID_MEDIA_REQUEST);
+    }
 
-                for (ConfirmMediaItemRequest item : request.items()) {
+    Product product = productRepository.findById(productId)
+        .orElseThrow(
+            () -> new AppException(
+                ErrorCode.PRODUCT_NOT_FOUND));
 
-                        try (InputStream is = storageService.getObject(
-                                        StorageBucket.PRODUCT_MEDIA.getBucketName(),
-                                        item.storageKey())) {
+    List<DetectedMediaInfo> detectedMediaList = new ArrayList<>();
 
-                                String mimeType = tika.detect(is);
+    Set<Integer> requestedOrders = request.items()
+        .stream()
+        .map(ConfirmMediaItemRequest::displayOrder)
+        .filter(Objects::nonNull)
+        .collect(Collectors.toSet());
 
-                                MediaType actualType = resolveMediaType(
-                                                mimeType);
+    List<Integer> existsDisplayOrders = productMediaRepository.findExistingDisplayOrders(productId, requestedOrders);
 
-                                long fileSize = storageService.getObjectSize(
-                                                StorageBucket.PRODUCT_MEDIA.getBucketName(),
-                                                item.storageKey());
+    for (ConfirmMediaItemRequest item : request.items()) {
 
-                                detectedMediaList.add(new DetectedMediaInfo(
-                                                item.storageKey(),
-                                                item.mediaType(),
-                                                actualType,
-                                                mimeType,
-                                                item.displayOrder(),
-                                                fileSize));
+      if (existsDisplayOrders.contains(item.displayOrder()))
+        continue;
 
-                        } catch (Exception e) {
+      try (InputStream is = storageService.getObject(
+          StorageBucket.PRODUCT_MEDIA.getBucketName(),
+          item.storageKey())) {
 
-                                throw new AppException(
-                                                ErrorCode.INVALID_MEDIA_FILE);
-                        }
-                }
+        String mimeType = tika.detect(is);
 
-                productMediaValidator.validateConfirmedMedia(
-                                productId,
-                                detectedMediaList);
+        MediaType actualType = resolveMediaType(
+            mimeType);
 
-                List<ProductMedia> entities = new ArrayList<>();
+        long fileSize = storageService.getObjectSize(
+            StorageBucket.PRODUCT_MEDIA.getBucketName(),
+            item.storageKey());
 
-                for (int i = 0; i < request.items().size(); i++) {
+        detectedMediaList.add(new DetectedMediaInfo(
+            item.storageKey(),
+            item.mediaType(),
+            actualType,
+            mimeType,
+            item.displayOrder(),
+            fileSize));
 
-                        ConfirmMediaItemRequest item = request.items().get(i);
+      } catch (Exception e) {
 
-                        DetectedMediaInfo detected = detectedMediaList.get(i);
+        throw new AppException(
+            ErrorCode.INVALID_MEDIA_FILE);
+      }
+    }
 
-                        String finalKey = generateFinalStorageKey(
-                                        productId,
-                                        detected.mimeType());
+    productMediaValidator.validateConfirmedMedia(
+        productId,
+        detectedMediaList);
 
-                        storageService.moveObject(
-                                        StorageBucket.PRODUCT_MEDIA.getBucketName(),
-                                        item.storageKey(),
-                                        finalKey);
+    List<ProductMedia> entities = new ArrayList<>();
 
-                        ProductMedia media = ProductMedia.builder()
-                                        .product(product)
-                                        .storageKey(finalKey)
-                                        .mediaType(detected.actualType())
-                                        .displayOrder(detected.displayOrder())
-                                        .build();
+    for (DetectedMediaInfo detected : detectedMediaList) {
 
-                        entities.add(media);
-                }
-                productMediaRepository.saveAll(
-                                entities);
+      redisUploadTrackingService.saveUploadSession(sellerId, productId, detected.storageKey());
+      String finalKey = generateFinalStorageKey(
+          productId,
+          detected.mimeType());
 
-                uploadTrackingService.decreasePendingUploads(
-                                sellerId,
-                                entities.size());
+      storageService.moveObject(
+          StorageBucket.PRODUCT_MEDIA.getBucketName(),
+          detected.storageKey(),
+          finalKey);
 
-                return entities.stream()
-                                .map(this::toResponse)
-                                .toList();
-        }
+      ProductMedia media = ProductMedia.builder()
+          .product(product)
+          .storageKey(finalKey)
+          .mediaType(detected.actualType())
+          .displayOrder(detected.displayOrder())
+          .build();
+
+      entities.add(media);
+    }
+    productMediaRepository.saveAll(
+        entities);
+
+    uploadTrackingService.decreasePendingUploads(
+        sellerId,
+        entities.size());
+
+    return entities.stream()
+        .map(this::toResponse)
+        .toList();
+  }
+
+  private MediaType resolveMediaType(
+      String mimeType) {
+
+    for (MediaType type : MediaType.values()) {
 
-        private MediaType resolveMediaType(
-                        String mimeType) {
+      if (type.matches(mimeType)) {
+        return type;
+      }
+    }
 
-                for (MediaType type : MediaType.values()) {
+    throw new AppException(
+        ErrorCode.INVALID_MEDIA_FILE);
+  }
 
-                        if (type.matches(mimeType)) {
-                                return type;
-                        }
-                }
+  private String generateFinalStorageKey(Long productId, String mimeType) {
 
-                throw new AppException(
-                                ErrorCode.INVALID_MEDIA_FILE);
-        }
+    return "products/"
+        + productId
+        + "/"
+        + UUID.randomUUID()
+            .toString()
+            .replace("-", "")
+        + resolveExtension(mimeType);
+  }
 
-        private String generateFinalStorageKey(Long productId, String mimeType) {
+  private ProductMediaResponse toResponse(
+      ProductMedia media) {
 
-                return "products/"
-                                + productId
-                                + "/"
-                                + UUID.randomUUID()
-                                                .toString()
-                                                .replace("-", "")
-                                + resolveExtension(mimeType);
-        }
+    return ProductMediaResponse.builder()
+        .id(media.getId())
+        .mediaType(media.getMediaType())
+        .displayOrder(media.getDisplayOrder())
+        .mediaUrl(
+            storageService.generatePresignedViewUrl(
+                StorageBucket.PRODUCT_MEDIA.getBucketName(),
+                media.getStorageKey(),
+                mediaProperties.presigned().viewTtl()))
+        .build();
+  }
 
-        private ProductMediaResponse toResponse(
-                        ProductMedia media) {
+  private String resolveExtension(String mimeType) {
 
-                return ProductMediaResponse.builder()
-                                .id(media.getId())
-                                .mediaType(media.getMediaType())
-                                .displayOrder(media.getDisplayOrder())
-                                .mediaUrl(
-                                                storageService.generatePresignedViewUrl(
-                                                                StorageBucket.PRODUCT_MEDIA.getBucketName(),
-                                                                media.getStorageKey(),
-                                                                mediaProperties.presigned().viewTtl()))
-                                .build();
-        }
+    return switch (mimeType) {
 
-        private String resolveExtension(String mimeType) {
+      case "image/jpeg" -> ".jpg";
 
-                return switch (mimeType) {
+      case "image/png" -> ".png";
 
-                        case "image/jpeg" -> ".jpg";
+      case "image/webp" -> ".webp";
 
-                        case "image/png" -> ".png";
+      case "video/mp4" -> ".mp4";
 
-                        case "image/webp" -> ".webp";
+      case "video/quicktime" -> ".mov";
 
-                        case "video/mp4" -> ".mp4";
+      default ->
+        throw new AppException(
+            ErrorCode.INVALID_MEDIA_FILE);
+    };
+  }
 
-                        case "video/quicktime" -> ".mov";
+  @Transactional
+  public void deleteProductMedia(Long productId, DeleteProductMediaRequest request) {
+    List<ProductMedia> productMediaList = productMediaRepository.findAllByIdInAndProductId(request.mediaIds(),
+        productId);
+    for (ProductMedia productMedia : productMediaList) {
+      storageService.deleteObject(StorageBucket.PRODUCT_MEDIA.getBucketName(), productMedia.getStorageKey());
+    }
+    productMediaRepository.deleteAll(productMediaList);
+  }
 
-                        default ->
-                                throw new AppException(
-                                                ErrorCode.INVALID_MEDIA_FILE);
-                };
-        }
+  @Transactional
+  public void updateOrder(
+      Long productId,
+      UpdateProductMediaOrderRequest request) {
 
-        @Transactional
-        public void deleteProductMedia(Long productId, DeleteProductMediaRequest request) {
-                productMediaRepository.deleteByProductIdAndMediaIds(productId, request.mediaIds());
-        }
+    productRepository.findByIdForUpdate(productId)
+        .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
 
-        @Transactional
-        public void updateOrder(
-                        Long productId,
-                        UpdateProductMediaOrderRequest request) {
+    validateRequest(request);
 
-                productRepository.findByIdForUpdate(productId)
-                                .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
+    Set<Long> mediaIds = request.media()
+        .stream()
+        .map(MediaOrderUpdate::mediaId)
+        .collect(Collectors.toSet());
 
-                validateRequest(request);
+    List<ProductMedia> medias = productMediaRepository
+        .findAllByProductIdAndIdIn(
+            productId,
+            mediaIds);
 
-                Set<Long> mediaIds = request.media()
-                                .stream()
-                                .map(MediaOrderUpdate::mediaId)
-                                .collect(Collectors.toSet());
+    Map<Long, ProductMedia> mediaMap = medias.stream()
+        .collect(Collectors.toMap(ProductMedia::getId, Function.identity()));
 
-                List<ProductMedia> medias = productMediaRepository
-                                .findAllByProductIdAndIdIn(
-                                                productId,
-                                                mediaIds);
+    if (mediaMap.size() != mediaIds.size()) {
 
-                Map<Long, ProductMedia> mediaMap = medias.stream()
-                                .collect(Collectors.toMap(ProductMedia::getId, Function.identity()));
+      throw new AppException(
+          ErrorCode.MEDIA_NOT_ASSOCIATED_WITH_PRODUCT);
+    }
 
-                if (mediaMap.size() != mediaIds.size()) {
+    int temporaryOrder = -10_000_000;
 
-                        throw new AppException(
-                                        ErrorCode.MEDIA_NOT_ASSOCIATED_WITH_PRODUCT);
-                }
+    for (MediaOrderUpdate update : request.media()) {
 
-                int temporaryOrder = -10_000_000;
+      ProductMedia media = mediaMap.get(
+          update.mediaId());
 
-                for (MediaOrderUpdate update : request.media()) {
+      media.setDisplayOrder(temporaryOrder++);
+    }
 
-                        ProductMedia media = mediaMap.get(
-                                        update.mediaId());
+    productMediaRepository.flush();
 
-                        media.setDisplayOrder(temporaryOrder++);
-                }
+    for (MediaOrderUpdate update : request.media()) {
 
-                productMediaRepository.flush();
+      ProductMedia media = mediaMap.get(update.mediaId());
 
-                for (MediaOrderUpdate update : request.media()) {
+      media.setDisplayOrder(update.displayOrder());
+    }
 
-                        ProductMedia media = mediaMap.get(update.mediaId());
+    productMediaRepository.saveAll(mediaMap.values());
 
-                        media.setDisplayOrder(update.displayOrder());
-                }
+    productMediaRepository.flush();
+  }
 
-                productMediaRepository.saveAll(mediaMap.values());
+  private void validateRequest(
+      UpdateProductMediaOrderRequest request) {
 
-                productMediaRepository.flush();
-        }
+    if (request == null || request.media() == null || request.media().isEmpty()) {
 
-        private void validateRequest(
-                        UpdateProductMediaOrderRequest request) {
+      throw new AppException(ErrorCode.INVALID_MEDIA_ORDER);
+    }
 
-                if (request == null || request.media() == null || request.media().isEmpty()) {
+    Set<Long> mediaIds = new HashSet<>();
 
-                        throw new AppException(ErrorCode.INVALID_MEDIA_ORDER);
-                }
+    Set<Integer> displayOrders = new HashSet<>();
 
-                Set<Long> mediaIds = new HashSet<>();
+    for (MediaOrderUpdate update : request.media()) {
 
-                Set<Integer> displayOrders = new HashSet<>();
+      if (update.mediaId() == null || update.displayOrder() == null) {
 
-                for (MediaOrderUpdate update : request.media()) {
+        throw new AppException(ErrorCode.INVALID_MEDIA_ORDER);
+      }
 
-                        if (update.mediaId() == null || update.displayOrder() == null) {
+      if (!mediaIds.add(
+          update.mediaId())) {
 
-                                throw new AppException(ErrorCode.INVALID_MEDIA_ORDER);
-                        }
+        throw new AppException(ErrorCode.DUPLICATE_MEDIA_OPERATION);
+      }
 
-                        if (!mediaIds.add(
-                                        update.mediaId())) {
+      int order = update.displayOrder();
 
-                                throw new AppException(ErrorCode.DUPLICATE_MEDIA_OPERATION);
-                        }
+      if (order < MediaOrderPolicy.SAFE_MIN || order > MediaOrderPolicy.SAFE_MAX) {
 
-                        int order = update.displayOrder();
+        throw new AppException(ErrorCode.INVALID_MEDIA_ORDER);
+      }
 
-                        if (order < MediaOrderPolicy.SAFE_MIN || order > MediaOrderPolicy.SAFE_MAX) {
+      if (!displayOrders.add(order)) {
 
-                                throw new AppException(ErrorCode.INVALID_MEDIA_ORDER);
-                        }
+        throw new AppException(ErrorCode.INVALID_MEDIA_ORDER);
+      }
+    }
+  }
 
-                        if (!displayOrders.add(order)) {
+  public List<ProductMediaResponse> getProductMediaList(Long productId) {
+    List<ProductMedia> productMediaList = productMediaRepository.findAllByProductId(productId);
 
-                                throw new AppException(ErrorCode.INVALID_MEDIA_ORDER);
-                        }
-                }
-        }
+    return productMediaList.stream().map(this::toResponse).toList();
+  }
 }
