@@ -1,5 +1,7 @@
 package com.auction.dutch.model.dto.response;
 
+import java.util.List;
+
 import com.auction.dutch.enums.ProductStatus;
 
 import lombok.Builder;
@@ -7,25 +9,26 @@ import lombok.Builder;
 @Builder
 public record ProductDetailResponse(
 
-        Long id,
+                Long id,
 
-        String productCode,
+                String code,
 
-        String name,
+                String name,
 
-        String description,
+                String description,
 
-        Long categoryId,
+                Long categoryId,
 
-        String categoryName,
+                String categoryName,
 
-        Long brandId,
+                Long brandId,
 
-        String brandName,
+                String brandName,
 
-        Integer stockQuantity,
+                Integer stockQuantity,
 
-        ProductStatus status
+                ProductStatus status,
+                List<ProductMediaResponse> productMediaResponses
 
 ) {
 }
