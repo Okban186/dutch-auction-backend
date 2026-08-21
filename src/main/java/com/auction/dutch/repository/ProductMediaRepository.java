@@ -49,4 +49,13 @@ public interface ProductMediaRepository extends JpaRepository<ProductMedia, Long
     List<Integer> findExistingDisplayOrders(
             @Param("productId") Long productId,
             @Param("orders") Collection<Integer> orders);
+
+    @Query(value = """
+            SELECT DISTINCT ON (pm.product_id) pm.*
+            FROM product_media pm
+            WHERE pm.product_id IN (:productIds)
+            ORDER BY pm.product_id, pm.display_order ASC
+            """, nativeQuery = true)
+    List<ProductMedia> findFirstMediaByProductIds(
+            @Param("productIds") Collection<Long> productIds);
 }
