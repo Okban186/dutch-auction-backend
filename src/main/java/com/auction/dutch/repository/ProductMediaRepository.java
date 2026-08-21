@@ -24,9 +24,9 @@ public interface ProductMediaRepository extends JpaRepository<ProductMedia, Long
 
     @Modifying
     @Query("""
-                DELETE FROM ProductMedia pm
-                WHERE pm.product.id = :productId
-                  AND pm.id IN :mediaIds
+            DELETE FROM ProductMedia pm
+            WHERE pm.product.id = :productId
+              AND pm.id IN :mediaIds
             """)
     void deleteByProductIdAndMediaIds(
             Long productId,
@@ -41,14 +41,16 @@ public interface ProductMediaRepository extends JpaRepository<ProductMedia, Long
             Collection<Long> ids);
 
     @Query("""
-                SELECT pm.displayOrder
-                FROM ProductMedia pm
-                WHERE pm.product.id = :productId
-                  AND pm.displayOrder IN :orders
+            SELECT pm.displayOrder
+            FROM ProductMedia pm
+            WHERE pm.product.id = :productId
+              AND pm.displayOrder IN :orders
             """)
     List<Integer> findExistingDisplayOrders(
             @Param("productId") Long productId,
             @Param("orders") Collection<Integer> orders);
+
+    Long countByProductId(Long productId);
 
     @Query(value = """
             SELECT DISTINCT ON (pm.product_id) pm.*

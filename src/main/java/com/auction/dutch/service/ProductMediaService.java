@@ -231,8 +231,15 @@ public class ProductMediaService {
   public void deleteProductMedia(Long productId, DeleteProductMediaRequest request) {
     List<ProductMedia> productMediaList = productMediaRepository.findAllByIdInAndProductId(request.mediaIds(),
         productId);
+    long totalmedia = productMediaRepository.countByProductId(productId);
+    if (totalmedia - productMediaList.size() < 1)
+      throw new AppException(ErrorCode.PRODUCT_MEDIA_REQUIRED);
     for (ProductMedia productMedia : productMediaList) {
-      storageService.deleteObject(StorageBucket.PRODUCT_MEDIA.getBucketName(), productMedia.getStorageKey());
+      try {
+        storageService.deleteObject(StorageBucket.PRODUCT_MEDIA.getBucketName(), productMedia.getStorageKey());
+      } catch (Exception e) {
+
+      }
     }
     productMediaRepository.deleteAll(productMediaList);
   }
