@@ -57,6 +57,8 @@ public class MediaUploadService {
                                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
                 Product product = productRepository.findById(productId)
                                 .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
+                if (product.getStatus() == ProductStatus.DELETED)
+                        throw new AppException(ErrorCode.PRODUCT_NOT_FOUND);
 
                 if (user.getStatus() == UserStatus.DELETED || user.getStatus() == UserStatus.BLOCKED)
                         throw new AppException(ErrorCode.USER_NOT_FOUND);

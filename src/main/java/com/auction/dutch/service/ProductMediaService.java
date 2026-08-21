@@ -18,6 +18,7 @@ import com.auction.dutch.cache.UploadTrackingService;
 import com.auction.dutch.cache.impl.RedisUploadTrackingService;
 import com.auction.dutch.config.properties.MediaProperties;
 import com.auction.dutch.enums.MediaType;
+import com.auction.dutch.enums.ProductStatus;
 import com.auction.dutch.enums.StorageBucket;
 import com.auction.dutch.exception.AppException;
 import com.auction.dutch.exception.ErrorCode;
@@ -81,6 +82,8 @@ public class ProductMediaService {
         .orElseThrow(
             () -> new AppException(
                 ErrorCode.PRODUCT_NOT_FOUND));
+    if (product.getStatus() == ProductStatus.DELETED)
+      throw new AppException(ErrorCode.PRODUCT_NOT_FOUND);
 
     List<DetectedMediaInfo> detectedMediaList = new ArrayList<>();
 
@@ -239,9 +242,10 @@ public class ProductMediaService {
       Long productId,
       UpdateProductMediaOrderRequest request) {
 
-    productRepository.findByIdForUpdate(productId)
+    Product product = productRepository.findByIdForUpdate(productId)
         .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
-
+    if (product.getStatus() == ProductStatus.DELETED)
+      throw new AppException(ErrorCode.PRODUCT_NOT_FOUND);
     validateRequest(request);
 
     Set<Long> mediaIds = request.media()
