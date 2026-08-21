@@ -49,6 +49,7 @@ public enum ErrorCode {
       "The requested media sequence is invalid. The number of media items do not match the current product state"),
   DUPLICATE_MEDIA_OPERATION(409,
       "The operation was rejected because a media file with identical attributes already exists for this product"),
+  PRODUCT_MEDIA_REQUIRED(400, "Product must have at least one media item (image or video)."),
 
   // Auction
   AUCTION_NOT_FOUND(404, "Auction session not found"),

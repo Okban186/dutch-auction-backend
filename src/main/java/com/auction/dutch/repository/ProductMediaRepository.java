@@ -16,37 +16,39 @@ import com.auction.dutch.model.entity.ProductMedia;
 @Repository
 public interface ProductMediaRepository extends JpaRepository<ProductMedia, Long> {
 
-    List<ProductMedia> findAllByProductId(Long productId);
+        List<ProductMedia> findAllByProductId(Long productId);
 
-    List<ProductMedia> findAllByIdInAndProductId(
-            List<Long> ids,
-            Long productId);
+        List<ProductMedia> findAllByIdInAndProductId(
+                        List<Long> ids,
+                        Long productId);
 
-    @Modifying
-    @Query("""
-                DELETE FROM ProductMedia pm
-                WHERE pm.product.id = :productId
-                  AND pm.id IN :mediaIds
-            """)
-    void deleteByProductIdAndMediaIds(
-            Long productId,
-            List<Long> mediaIds);
+        @Modifying
+        @Query("""
+                            DELETE FROM ProductMedia pm
+                            WHERE pm.product.id = :productId
+                              AND pm.id IN :mediaIds
+                        """)
+        void deleteByProductIdAndMediaIds(
+                        Long productId,
+                        List<Long> mediaIds);
 
-    long countByProductIdAndMediaType(
-            Long productId,
-            MediaType mediaType);
+        long countByProductIdAndMediaType(
+                        Long productId,
+                        MediaType mediaType);
 
-    List<ProductMedia> findAllByProductIdAndIdIn(
-            Long productId,
-            Collection<Long> ids);
+        List<ProductMedia> findAllByProductIdAndIdIn(
+                        Long productId,
+                        Collection<Long> ids);
 
-    @Query("""
-                SELECT pm.displayOrder
-                FROM ProductMedia pm
-                WHERE pm.product.id = :productId
-                  AND pm.displayOrder IN :orders
-            """)
-    List<Integer> findExistingDisplayOrders(
-            @Param("productId") Long productId,
-            @Param("orders") Collection<Integer> orders);
+        @Query("""
+                            SELECT pm.displayOrder
+                            FROM ProductMedia pm
+                            WHERE pm.product.id = :productId
+                              AND pm.displayOrder IN :orders
+                        """)
+        List<Integer> findExistingDisplayOrders(
+                        @Param("productId") Long productId,
+                        @Param("orders") Collection<Integer> orders);
+
+        Long countByProductId(Long productId);
 }
