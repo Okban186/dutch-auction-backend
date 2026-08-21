@@ -51,6 +51,12 @@ public class Product {
   @JoinColumn(name = "brand_id")
   private Brand brand;
 
+  @Column(name = "category_id", updatable = false, insertable = false)
+  private Long categoryId;
+
+  @Column(name = "brand_id", updatable = false, insertable = false)
+  private Long brandId;
+
   private String name;
 
   @Column(columnDefinition = "TEXT")
@@ -60,7 +66,7 @@ public class Product {
 
   @Enumerated(EnumType.STRING)
   @Builder.Default
-  private ProductStatus status = ProductStatus.ACTIVE;
+  private ProductStatus status = ProductStatus.DRAFT;
 
   @CreationTimestamp
   private LocalDateTime createdAt;
