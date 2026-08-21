@@ -7,11 +7,13 @@ public record ProductItemResponse(
 
         Long id,
 
-        String productCode,
+        String code,
 
         String name,
 
-        Integer stockQuantity
+        Integer stockQuantity,
+
+        String viewUrl
 
 ) {
 }

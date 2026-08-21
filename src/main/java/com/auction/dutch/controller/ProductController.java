@@ -3,6 +3,7 @@ package com.auction.dutch.controller;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -51,6 +52,12 @@ public class ProductController {
     @PatchMapping("/admin/products/{id}/inactive")
     public ResponseEntity inactiveProduct(@PathVariable(name = "id") Long productId) {
         productService.deactivateProduct(productId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/admin/products/{id}")
+    public ResponseEntity deleteProduct(@PathVariable(name = "id") Long productId) {
+        productService.deleteProduct(productId);
         return ResponseEntity.noContent().build();
     }
 }
